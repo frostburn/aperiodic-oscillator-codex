@@ -31,7 +31,7 @@ import {AperiodicOscillator, AperiodicWave} from 'aperiodic-oscillator';
 
 const context = new AudioContext();
 
-const partials = Array.from({length: 16}, (_, i) => i + 1);
+const partials = Array.from({length: 128}, (_, i) => i + 1);
 const spectrum = partials.map(n => n ** 1.5); // inharmonic partial ratios
 const amplitudes = partials.map(n => 0.3 * n ** -1.5);
 
