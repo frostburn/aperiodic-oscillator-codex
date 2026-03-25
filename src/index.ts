@@ -97,6 +97,8 @@ export class MultiOscillator implements OscillatorNode {
 
   /**
    * Dispose of this {@link MultiOscillator} stopping and disconnecting all voices.
+   * @returns `void`.
+   * @remarks Side effects: disconnects every voice from internal routing, attempts to stop each started voice, stops internal detune/frequency control sources, and disconnects the output gain node.
    */
   dispose() {
     for (const voice of this.voices) {
@@ -126,6 +128,11 @@ export class MultiOscillator implements OscillatorNode {
   /**
    * Set the number of voices in this {@link MultiOscillator} group.
    * Allocates and auto-connects new voices as necessary.
+   *
+   * If the oscillator is already started, newly created voices are started using the
+   * original `start()` scheduling. If `stop()` was already called, those new voices are
+   * also given the same stop scheduling. Removed voices are disconnected and, when
+   * already started, are stopped immediately.
    */
   set numberOfVoices(newValue: number) {
     if (newValue < 1) {
@@ -202,26 +209,48 @@ export class MultiOscillator implements OscillatorNode {
     }
   }
 
+  /**
+   * Event handler invoked when playback ends.
+   * Mirrors the first underlying voice's `onended` property.
+   */
   get onended() {
     return this.voices[0].onended;
   }
 
+  /**
+   * Channel count used when up/down-mixing connections.
+   * Mirrors [AudioNode.channelCount](https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelCount).
+   */
   get channelCount() {
     return this.voices[0].channelCount;
   }
 
+  /**
+   * Speaker interpretation mode for channel mixing.
+   * Mirrors [AudioNode.channelInterpretation](https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelInterpretation).
+   */
   get channelInterpretation() {
     return this.voices[0].channelInterpretation;
   }
 
+  /**
+   * Algorithm used to match this node's channels to connected nodes.
+   * Mirrors [AudioNode.channelCountMode](https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelCountMode).
+   */
   get channelCountMode() {
     return this.voices[0].channelCountMode;
   }
 
+  /**
+   * Number of inputs for this source node.
+   */
   get numberOfInputs() {
     return this.voices[0].numberOfInputs;
   }
 
+  /**
+   * Number of outputs for this source node.
+   */
   get numberOfOutputs() {
     return this.voices[0].numberOfOutputs;
   }
@@ -286,6 +315,8 @@ export class MultiOscillator implements OscillatorNode {
   /**
    * Specifies the exact time to start playing the tone.
    * @param when The time, in seconds, at which the sound should begin to play. This value is specified in the same time coordinate system as the [AudioContext](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext) is using for its [currentTime](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/currentTime) attribute. A value of 0 (or omitting the when parameter entirely) causes the sound to start playback immediately.
+   * @returns `void`.
+   * @remarks Side effects: updates internal lifecycle flags and starts all current voices plus internal detune/frequency control sources.
    */
   start(when?: number) {
     this._started = true;
@@ -300,6 +331,8 @@ export class MultiOscillator implements OscillatorNode {
   /**
    * Specifies the time to stop playing the tone.
    * @param when The time, in seconds, at which the sound should stop playing. This value is specified in the same time coordinate system as the [AudioContext](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext) is using for its [currentTime](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/currentTime) attribute. Omitting this parameter, specifying a value of 0, or passing a negative value causes the sound to stop playback immediately.
+   * @returns `void`.
+   * @remarks Side effects: updates internal lifecycle flags and stops all current voices plus internal detune/frequency control sources.
    */
   stop(when?: number) {
     this._stopped = true;
@@ -379,7 +412,17 @@ export class MultiOscillator implements OscillatorNode {
 }
 
 export interface UnisonOscillatorOptions extends OscillatorOptions {
+  /**
+   * Per-voice spread amount applied symmetrically around the center voice.
+   *
+   * Units depend on constructor `mode`:
+   * - `'detune'` mode (default): cents
+   * - `'frequency'` mode: hertz (Hz)
+   */
   spread?: number;
+  /**
+   * Initial number of voices to allocate. Must be at least `1`.
+   */
   numberOfVoices?: number;
 }
 
@@ -456,7 +499,9 @@ export class UnisonOscillator extends MultiOscillator {
   }
 
   /**
-   * An [a-rate](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam#a-rate) [AudioParam](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam) representing spread of oscillation in Hertz (though the `AudioParam` returned is read-only, the value it represents is not). The default value is 0.
+   * An [a-rate](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam#a-rate) [AudioParam](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam) representing voice spread (though the `AudioParam` returned is read-only, the value it represents is not). The default value is 0.
+   *
+   * Units depend on constructor `mode`: cents in `'detune'` mode (default), hertz (Hz) in `'frequency'` mode.
    */
   get spread() {
     return this._spread.offset;
@@ -485,6 +530,12 @@ export interface AperiodicOscillatorOptions extends Omit<
   OscillatorOptions,
   'type' | 'periodicWave'
 > {
+  /**
+   * Optional aperiodic wave applied during construction.
+   *
+   * When provided, the oscillator resizes its voice count to match the wave and applies
+   * each voice's periodic shape plus voice detuning in cents.
+   */
   aperiodicWave?: AperiodicWave;
 }
 
