@@ -14,6 +14,9 @@ describe('Harmonic allocator', () => {
 
   it('throws for invalid maxNumberOfVoices', () => {
     expect(() => allocateVoices([1], [1], 0, 0.5)).toThrow(/maxNumberOfVoices/);
+    expect(() => allocateVoices([1], [1], 2.75, 0.5)).toThrow(
+      /finite integer >= 1/,
+    );
   });
 
   it('throws for invalid tolerance', () => {

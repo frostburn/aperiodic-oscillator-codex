@@ -14,9 +14,13 @@ export function validateAllocationInputs(
     );
   }
 
-  if (!Number.isFinite(maxNumberOfVoices) || maxNumberOfVoices < 1) {
+  if (
+    !Number.isFinite(maxNumberOfVoices) ||
+    !Number.isInteger(maxNumberOfVoices) ||
+    maxNumberOfVoices < 1
+  ) {
     throw new Error(
-      `Invalid parameter "maxNumberOfVoices": expected a finite number >= 1, received ${maxNumberOfVoices}`,
+      `Invalid parameter "maxNumberOfVoices": expected a finite integer >= 1, received ${maxNumberOfVoices}`,
     );
   }
 
