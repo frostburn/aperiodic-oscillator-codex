@@ -58,6 +58,8 @@ tine.start();
 tine.stop(context.currentTime + 2);
 ```
 
+> **Browser autoplay note:** Most browsers block audio until a user gesture occurs (for example, a button click). If you hear silence, create/resume the `AudioContext` inside a click/tap handler.
+
 ## API Overview
 The package exports four primary public classes from `src/index.ts`: `AperiodicWave`, `MultiOscillator`, `UnisonOscillator`, and `AperiodicOscillator`.
 
@@ -139,8 +141,6 @@ Input validation in `src/harmonic-allocator.ts` enforces:
 - every `amplitudes[i]` must be a finite number `>= 0`.
 
 Violations throw `Error` with a message naming the invalid parameter and the received value.
-
-> **Browser autoplay note:** Most browsers block audio until a user gesture occurs (for example, a button click). If you hear silence, create/resume the `AudioContext` inside a click/tap handler.
 
 ## Installation ##
 Install the published package:
