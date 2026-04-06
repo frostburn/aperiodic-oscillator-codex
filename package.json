@@ -57,5 +57,6 @@
     "typedoc": "^0.28.18",
     "typescript": "^6.0.2",
     "vitest": "^4.1.2"
-  }
+  },
+  "type": "module"
 }
